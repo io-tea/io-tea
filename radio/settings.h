@@ -26,6 +26,6 @@ namespace iotea {
         /**
          * Radio configurations.
          */
-        std::map<NodeName, NodeSettings> SETTINGS;
+        extern std::map<NodeName, NodeSettings> SETTINGS;
     }
 }

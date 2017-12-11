@@ -28,7 +28,7 @@ namespace iotea {
             */
         }
 
-        std::list<std::unique_ptr<protocol::Message>> getMessages() {
+        std::list<std::unique_ptr<protocol::Message>> Node::getMessages() {
             std::list<std::unique_ptr<protocol::Message>> messages;
             /*
             // On first loop of activity ask gateway if there are any pending

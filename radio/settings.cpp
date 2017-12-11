@@ -7,7 +7,7 @@ namespace iotea {
         const uint64_t CHANNEL          = 2;
         const uint32_t TRANSFER_SIZE    = 32;
 
-        const std::map<NodeName, NodeSettings> settings({
+        std::map<NodeName, NodeSettings> SETTINGS({
                 {NodeName::GATEWAY_OOLONG,  NodeSettings{0xABCDEF01}},
                 {NodeName::NODE_EARLGREY,   NodeSettings{0xABCDEF02}},
                 {NodeName::NODE_PUERH,      NodeSettings{0xABCDEF03}},
