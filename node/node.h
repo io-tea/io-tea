@@ -13,7 +13,7 @@ namespace iotea {
     namespace node {
         class Node {
         public:
-            Node(radio::NodeName radioNodeName);
+            Node(NodeName radioNodeName);
 
             void addSensor(std::unique_ptr<sensor::Sensor> sensor);
 

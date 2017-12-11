@@ -3,7 +3,7 @@
 namespace iotea {
     namespace node {
 
-        Node::Node(radio::NodeName radioNodeName)
+        Node::Node(NodeName radioNodeName)
             : serial_(USBTX, USBRX)
             , radio_(radioNodeName) {}
 

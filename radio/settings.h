@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common/name.h"
+
 #include "nRF24L01P.h"
 
 #include <map>
@@ -19,16 +21,6 @@ namespace iotea {
          */
         struct NodeSettings {
             uint64_t address;
-        };
-
-        /**
-         * Names of radio configurations.
-         */
-        enum class NodeName {
-            GATEWAY_OOLONG,
-            NODE_EARLGREY,
-            NODE_PUERH,
-            NODE_YERBA
         };
 
         /**
