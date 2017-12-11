@@ -4,13 +4,23 @@
 
 namespace iotea {
     namespace protocol {
-        using bytes_t = std::string;
-        using MessageType = uint8_t;
+        using bytes_t = uint8_t[2];
 
-        class Message {
-        public:
-            virtual ~Message() = 0;
-            virtual bytes_t get_bytes();
+        enum MessageType {
+            UNKNOWN,
+            COLOR,
+            TEMPERATURE,
+            LIQUID,
+            HUMIDITY
+        };
+
+        struct Message {
+            Message(MessageType type, uint8_t data);
+            Message(bytes_t bytes);
+            bytes_t get_bytes();
+
+            MessageType type_;
+            uint8_t data_;
         };
     }
 }
