@@ -67,7 +67,7 @@ namespace iotea {
             bool sent = false;
             do {
                 int bytesSent = radio_.write(0 /* unused parameter */, (char*)(&data[0]), data.size());
-                sent = bytesSent == data.size();
+                sent = bytesSent == static_cast<int>(data.size());
                 wait((rand() % 1000) / 1e6);
             } while (!sent && retriesCount-- > 0);
             return sent;
