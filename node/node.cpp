@@ -22,6 +22,7 @@ namespace iotea {
         }
 
         void Node::handleMessage(const protocol::Message& message) {
+            serial_.printf("node %d: received message type %d, data %d\r\n", message.type, message.data);
             /*
             if (message.type == CONFIGURE_TIME)
                 configureTime(dynamic_cast<protocol::TimeMessage>(message));
@@ -59,7 +60,8 @@ namespace iotea {
                     std::string data = radio_.receiveData();
 
                     std::unique_ptr<protocol::Message> message;
-                    // TODO: message = message::unpack(data);
+                    // TODO: use cantcoap, message = message::unpack(data);
+                    message = std::make_unique<protocol::Message>(data[0], data[1]);
                     handleMessage(*message);
                     for (auto& sensor: sensors_)
                         sensor->handleMessage(*message);
