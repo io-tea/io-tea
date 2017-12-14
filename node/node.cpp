@@ -3,7 +3,7 @@
 namespace iotea {
     namespace node {
 
-        Node::Node(NodeName radioNodeName)
+        Node::Node(NodeName nodeName)
             : serial_(USBTX, USBRX)
             , radio_(radioNodeName) {}
 
@@ -13,7 +13,7 @@ namespace iotea {
 
         void Node::setupSerial() {
             serial_.baud(115200);
-            serial_.printf("node %d: serial configured\r\n");
+            serial_.printf("node %d: serial configured\r\n", nodeName);
         }
 
         void Node::setupRadio() {
