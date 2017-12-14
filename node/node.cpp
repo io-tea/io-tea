@@ -61,7 +61,8 @@ namespace iotea {
 
                     std::unique_ptr<protocol::Message> message;
                     // TODO: use cantcoap, message = message::unpack(data);
-                    message = std::make_unique<protocol::Message>(data[0], data[1]);
+                    message = std::make_unique<protocol::Message>(
+                            static_cast<protocol::MessageType>(data[0]), data[1]);
                     handleMessage(*message);
                     for (auto& sensor: sensors_)
                         sensor->handleMessage(*message);
