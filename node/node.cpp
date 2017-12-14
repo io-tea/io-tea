@@ -4,8 +4,9 @@ namespace iotea {
     namespace node {
 
         Node::Node(NodeName nodeName)
-            : serial_(USBTX, USBRX)
-            , radio_(nodeName) {}
+            : name_(nodeName)
+            , serial_(USBTX, USBRX)
+            , radio_(name_) {}
 
         void Node::addSensor(std::unique_ptr<sensor::Sensor> sensor) {
             sensors_.push_back(std::move(sensor));
@@ -13,7 +14,7 @@ namespace iotea {
 
         void Node::setupSerial() {
             serial_.baud(115200);
-            serial_.printf("node %d: serial configured\r\n", nodeName);
+            serial_.printf("node %d: serial configured\r\n", name_);
         }
 
         void Node::setupRadio() {

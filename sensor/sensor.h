@@ -9,7 +9,7 @@ namespace iotea {
     namespace sensor {
         class Sensor {
         public:
-            virtual ~Sensor();
+            virtual ~Sensor() = default;
 
             /**
              * Setup sensor's data, pins, etc.
