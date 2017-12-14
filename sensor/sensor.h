@@ -17,6 +17,11 @@ namespace iotea {
             virtual void configure();
 
             /**
+             * Perform operations. Is called repeatedly.
+             */
+            virtual void tick();
+
+            /**
              * React on message from gateway.
              */
             virtual void handleMessage(const protocol::Message& message);

@@ -40,6 +40,9 @@ namespace iotea {
         }
 
         void Node::run() {
+            // Set RTC to 2017-01-01
+            set_time(0);
+
             setupSerial();
             setupRadio();
 
@@ -47,6 +50,10 @@ namespace iotea {
                 sensor->configure();
 
             while (true) {
+                // Perform sensors operations
+                for (auto& sensor: sensors_)
+                    sensor->tick();
+
                 if (radio_.isDataAvailible()) {
                     std::string data = radio_.receiveData();
 
@@ -58,13 +65,18 @@ namespace iotea {
                 }
 
                 // Add node's messages (configuration ones, asking for data, etc)
-                for (auto& message: getMessages())
-                    pendingBinaryMessages_.emplace_back(message->get_bytes());
+                for (auto& message: getMessages()) {
+                    auto bytes = message->get_bytes();
+                    pendingBinaryMessages_.emplace_back(std::string(bytes.begin(), bytes.end()));
+                }
 
                 // Add sensors' messages (data from world, etc)
-                for (auto& sensor: sensors_)
-                    for (auto& message: sensor->getMessages())
-                        pendingBinaryMessages_.emplace_back(message->get_bytes());
+                for (auto& sensor: sensors_) {
+                    for (auto& message: sensor->getMessages()) {
+                        auto bytes = message->get_bytes();
+                        pendingBinaryMessages_.emplace_back(std::string(bytes.begin(), bytes.end()));
+                    }
+                }
 
                 for (auto it = pendingBinaryMessages_.begin(); it != pendingBinaryMessages_.end(); ++it) {
                     if (radio_.sendData(*it))

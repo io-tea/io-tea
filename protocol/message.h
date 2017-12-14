@@ -1,17 +1,23 @@
 #pragma once
 
 #include <string>
+#include <array>
 
 namespace iotea {
     namespace protocol {
-        using bytes_t = uint8_t[2];
+        using bytes_t = std::array<uint8_t, 2>;
 
-        enum MessageType {
-            UNKNOWN,
-            COLOR,
-            TEMPERATURE,
-            LIQUID,
-            HUMIDITY
+        enum MessageType : uint8_t {
+            UNKNOWN     = 0,
+
+            // Sensors values
+            COLOR       = 1,
+            TEMPERATURE = 2,
+            LIQUID      = 3,
+            HUMIDITY    = 4,
+
+            // Commands
+            BLINK       = 5
         };
 
         struct Message {
@@ -19,8 +25,8 @@ namespace iotea {
             Message(bytes_t bytes);
             bytes_t get_bytes();
 
-            MessageType type_;
-            uint8_t data_;
+            MessageType type;
+            uint8_t data;
         };
     }
 }
