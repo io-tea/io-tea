@@ -28,9 +28,11 @@ namespace iotea {
         void Gateway::sendNodeMessages(NodeName node) {
             for (auto it = pendingRadioMessages_[node].begin(); it != pendingRadioMessages_[node].end(); ++it) {
                 if (radio_.sendData(node, *it)) {
+                    serial_.printf("gateway: sent radio message to node %d\r\n", node);
                     it = pendingRadioMessages_[node].erase(it);
                 }
                 else {
+                    serial_.printf("gateway: failed to send radio message to node %d\r\n", node);
                     ++it;
                 }
             }
@@ -53,6 +55,15 @@ namespace iotea {
                 //     auto message = wifi_.receiveData();
                 //     pendingRadioMessages_[message.getTargetNode()].push_back(message);
                 // }
+
+                time_t now = time(nullptr);
+                if (lastPingMessage_ != now) {
+                    lastPingMessage_ = now;
+                    for (auto node: NODES) {
+                        auto message = protocol::Message(protocol::MessageType::BLINK, 0).get_bytes();
+                        pendingRadioMessages_[node].push_back(std::string(message.begin(), message.end()));
+                    }
+                }
 
                 for (const auto node: NODES) {
                     sendNodeMessages(node);
