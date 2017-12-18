@@ -3,6 +3,8 @@
 namespace iotea {
     namespace node {
 
+        const size_t Node::PENDING_RADIO_MESSAGES_QUEUE_SIZE_LIMIT = 128;
+
         Node::Node(NodeName nodeName)
             : name_(nodeName)
             , serial_(USBTX, USBRX)
@@ -13,8 +15,7 @@ namespace iotea {
         }
 
         void Node::setupSerial() {
-            serial_.baud(115200);
-            serial_.printf("node %d: serial configured\r\n", name_);
+            serial_.baud(115200); serial_.printf("node %d: serial configured\r\n", name_);
         }
 
         void Node::setupRadio() {
@@ -71,23 +72,26 @@ namespace iotea {
                 // Add node's messages (configuration ones, asking for data, etc)
                 for (auto& message: getMessages()) {
                     auto bytes = message->get_bytes();
-                    pendingBinaryMessages_.emplace_back(std::string(bytes.begin(), bytes.end()));
+                    pendingRadioMessages_.emplace_back(std::string(bytes.begin(), bytes.end()));
                 }
 
                 // Add sensors' messages (data from world, etc)
                 for (auto& sensor: sensors_) {
                     for (auto& message: sensor->getMessages()) {
                         auto bytes = message->get_bytes();
-                        pendingBinaryMessages_.emplace_back(std::string(bytes.begin(), bytes.end()));
+                        pendingRadioMessages_.emplace_back(std::string(bytes.begin(), bytes.end()));
                     }
                 }
 
-                for (auto it = pendingBinaryMessages_.begin(); it != pendingBinaryMessages_.end(); ++it) {
+                for (auto it = pendingRadioMessages_.begin(); it != pendingRadioMessages_.end(); ++it) {
                     if (radio_.sendData(*it))
-                        it = pendingBinaryMessages_.erase(it);
+                        it = pendingRadioMessages_.erase(it);
                     else
                         ++it;
                 }
+
+                while (pendingRadioMessages_.size() > PENDING_RADIO_MESSAGES_QUEUE_SIZE_LIMIT)
+                    pendingRadioMessages_.pop_front();
 
                 /*
                 if (activeTime > 0.01 && loopsExecuted > 10) {

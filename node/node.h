@@ -20,6 +20,8 @@ namespace iotea {
             void run();
 
         protected:
+            static const size_t PENDING_RADIO_MESSAGES_QUEUE_SIZE_LIMIT;
+
             void setupSerial();
             void setupRadio();
 
@@ -32,7 +34,7 @@ namespace iotea {
             radio::Radio radio_;
 
             std::list<std::unique_ptr<sensor::Sensor>> sensors_;
-            std::list<std::string> pendingBinaryMessages_;
+            std::list<std::string> pendingRadioMessages_;
         };
     }
 }

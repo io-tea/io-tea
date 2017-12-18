@@ -22,6 +22,8 @@ namespace iotea {
             void sendNodeMessages(NodeName node);
 
             static const std::vector<NodeName> NODES;
+            static const size_t PENDING_RADIO_MESSAGES_QUEUE_SIZE_LIMIT;
+            static const size_t PENDING_FORWARD_MESSAGES_QUEUE_SIZE_LIMIT;
 
             Serial serial_;
             radio::Radio radio_;

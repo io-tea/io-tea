@@ -1,5 +1,6 @@
 **/.DS_Store
 .idea/
+*.sw[mnopq]
 BUILD/
 Would skip repository mbed-os/
 mbed_settings.py

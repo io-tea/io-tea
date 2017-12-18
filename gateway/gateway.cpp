@@ -8,10 +8,13 @@ namespace iotea {
         const std::vector<NodeName> Gateway::NODES = {
             NodeName::NODE_EARLGREY, NodeName::NODE_PUERH, NodeName::NODE_YERBA};
 
+        const size_t Gateway::PENDING_RADIO_MESSAGES_QUEUE_SIZE_LIMIT = 32;
+        const size_t Gateway::PENDING_FORWARD_MESSAGES_QUEUE_SIZE_LIMIT = 32;
+
         Gateway::Gateway()
-            : lastPingMessage_(0)
-            , serial_(USBTX, USBRX)
-            , radio_(iotea::NodeName::GATEWAY_OOLONG) {}
+            : serial_(USBTX, USBRX)
+            , radio_(iotea::NodeName::GATEWAY_OOLONG)
+            , lastPingMessage_(0) {}
 
         void Gateway::setupSerial() {
             serial_.baud(115200);
@@ -24,10 +27,12 @@ namespace iotea {
 
         void Gateway::sendNodeMessages(NodeName node) {
             for (auto it = pendingRadioMessages_[node].begin(); it != pendingRadioMessages_[node].end(); ++it) {
-                if (radio_.sendData(node, *it))
+                if (radio_.sendData(node, *it)) {
                     it = pendingRadioMessages_[node].erase(it);
-                else
+                }
+                else {
                     ++it;
+                }
             }
         }
 
@@ -43,8 +48,17 @@ namespace iotea {
                     pendingForwardMessages_.emplace_back(radio_.receiveData());
                 }
 
-                for (const auto node: NODES)
+                // TODO:
+                // if (wifi_.isDataAvailible()) {
+                //     auto message = wifi_.receiveData();
+                //     pendingRadioMessages_[message.getTargetNode()].push_back(message);
+                // }
+
+                for (const auto node: NODES) {
                     sendNodeMessages(node);
+                    while (pendingRadioMessages_[node].size() > PENDING_RADIO_MESSAGES_QUEUE_SIZE_LIMIT)
+                        pendingRadioMessages_[node].pop_front();
+                }
 
                 // TODO:
                 // for (auto it = pendingRadioMessages_.begin(); it != pendingRadioMessages_.end();) {
@@ -53,6 +67,9 @@ namespace iotea {
                 //     else
                 //         ++it;
                 // }
+
+                while (pendingForwardMessages_.size() > PENDING_FORWARD_MESSAGES_QUEUE_SIZE_LIMIT)
+                    pendingForwardMessages_.pop_front();
 
                 wait(0.001);
             }
