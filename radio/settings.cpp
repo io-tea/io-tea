@@ -8,10 +8,9 @@ namespace iotea {
         const uint32_t TRANSFER_SIZE    = 32;
 
         std::map<NodeName, NodeSettings> SETTINGS({
-                {NodeName::GATEWAY_OOLONG,  NodeSettings{0xABCDEF01}},
-                {NodeName::NODE_EARLGREY,   NodeSettings{0xABCDEF02}},
-                {NodeName::NODE_PUERH,      NodeSettings{0xABCDEF03}},
-                {NodeName::NODE_YERBA,      NodeSettings{0xABCDEF04}},
+                {NodeName::NODE_EARLGREY,   NodeSettings{0xABCDEF00}},
+                {NodeName::NODE_PUERH,      NodeSettings{0xABCDEF01}},
+                {NodeName::NODE_YERBA,      NodeSettings{0xABCDEF02}},
                 });
     }
 }

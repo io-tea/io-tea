@@ -36,10 +36,10 @@ namespace iotea {
             std::string receiveData();
 
         private:
-            void configurePeer(NodeName node, uint32_t pipe);
-
             NodeName name_;
             bool isGateway_;
+
+            size_t currentPipeWithDataIndex_;
 
             nRF24L01P radio_;
         };

@@ -3,7 +3,7 @@
 namespace iotea {
     namespace node {
 
-        const size_t Node::PENDING_RADIO_MESSAGES_QUEUE_SIZE_LIMIT = 128;
+        const size_t Node::PENDING_RADIO_MESSAGES_QUEUE_SIZE_LIMIT = 32;
 
         Node::Node(NodeName nodeName)
             : name_(nodeName)
@@ -57,7 +57,7 @@ namespace iotea {
                 for (auto& sensor: sensors_)
                     sensor->tick();
 
-                if (radio_.isDataAvailible()) {
+                while (radio_.isDataAvailible()) {
                     std::string data = radio_.receiveData();
 
                     std::unique_ptr<protocol::Message> message;

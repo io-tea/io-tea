@@ -46,7 +46,7 @@ namespace iotea {
             setupRadio();
 
             while (true) {
-                if (radio_.isDataAvailible()) {
+                while (radio_.isDataAvailible()) {
                     pendingForwardMessages_.emplace_back(radio_.receiveData());
                 }
 
@@ -55,15 +55,6 @@ namespace iotea {
                 //     auto message = wifi_.receiveData();
                 //     pendingRadioMessages_[message.getTargetNode()].push_back(message);
                 // }
-
-                time_t now = time(nullptr);
-                if (lastPingMessage_ != now) {
-                    lastPingMessage_ = now;
-                    for (auto node: NODES) {
-                        auto message = protocol::Message(protocol::MessageType::BLINK, 0).get_bytes();
-                        pendingRadioMessages_[node].push_back(std::string(message.begin(), message.end()));
-                    }
-                }
 
                 for (const auto node: NODES) {
                     sendNodeMessages(node);
