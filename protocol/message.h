@@ -15,9 +15,10 @@ namespace iotea {
             TEMPERATURE = 2,
             LIQUID      = 3,
             HUMIDITY    = 4,
+            GREYSCALE   = 5,
 
             // Commands
-            BLINK       = 5
+            BLINK       = 6
         };
 
         struct Message {

@@ -23,9 +23,5 @@ namespace iotea {
                 lastBlinkTime_ = time(nullptr);
             }
         }
-
-        std::list<std::unique_ptr<protocol::Message>> OnBoardLed::getMessages() {
-            return std::list<std::unique_ptr<protocol::Message>>();
-        }
     }
 }

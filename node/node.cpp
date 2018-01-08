@@ -32,8 +32,8 @@ namespace iotea {
             */
         }
 
-        std::list<std::unique_ptr<protocol::Message>> Node::getMessages() {
-            std::list<std::unique_ptr<protocol::Message>> messages;
+        std::list<protocol::Message> Node::getMessages() {
+            std::list<protocol::Message> messages;
             /*
             // On first loop of activity ask gateway if there are any pending
             // messages.
@@ -68,14 +68,14 @@ namespace iotea {
 
                 // Add node's messages (configuration ones, asking for data, etc)
                 for (auto& message: getMessages()) {
-                    auto bytes = message->get_bytes();
-                    pendingRadioMessages_.emplace_back(std::string(bytes.begin(), bytes.end()));
+                    auto bytes = message.get_bytes();
+                    pendingRadioMessages_.emplace_back(message.asPUTCoapPacket());
                 }
 
                 // Add sensors' messages (data from world, etc)
                 for (auto& sensor: sensors_) {
                     for (auto& message: sensor->getMessages()) {
-                        pendingRadioMessages_.emplace_back(message->asPUTCoapPacket());
+                        pendingRadioMessages_.emplace_back(message.asPUTCoapPacket());
                     }
                 }
 

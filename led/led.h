@@ -16,7 +16,6 @@ namespace iotea {
             void configure() override;
             void tick() override;
             void handleMessage(const protocol::Message& message) override;
-            std::list<std::unique_ptr<protocol::Message>> getMessages() override;
 
         private:
             time_t lastBlinkTime_;

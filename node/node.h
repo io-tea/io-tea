@@ -26,7 +26,7 @@ namespace iotea {
             void setupRadio();
 
             void handleMessage(const protocol::Message& message);
-            std::list<std::unique_ptr<protocol::Message>> getMessages();
+            std::list<protocol::Message> getMessages();
 
             NodeName name_;
 
