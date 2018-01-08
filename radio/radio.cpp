@@ -4,13 +4,16 @@
 
 namespace iotea {
     namespace radio {
-        Radio::Radio(NodeName name)
+        Radio::Radio(NodeName name, std::shared_ptr<Serial> serial)
             : name_(name)
             , isGateway_(name == NodeName::GATEWAY_OOLONG)
             , currentPipeWithDataIndex_(0)
-            , radio_(PB_15, PB_14, PB_13, PB_12, PB_1, PB_2) {}
+            , radio_(PB_15, PB_14, PB_13, PB_12, PB_1, PB_2)
+            , serial_(serial) {}
 
         void Radio::configure() {
+            serial_->printf("nRF24L01+ configuration for %d\r\n", name_);
+
             radio_.powerDown();
             radio_.powerUp();
 
@@ -35,6 +38,20 @@ namespace iotea {
                 radio_.setTxAddress(SETTINGS[name_].address, 4);
                 radio_.setTransferSize(TRANSFER_SIZE, NRF24L01P_PIPE_P0);
             }
+            wait(0.001);
+
+            serial_->printf("nRF24L01+ Frequency    : %d MHz\r\n",    radio_.getRfFrequency());
+            serial_->printf("nRF24L01+ Output power : %d dBm\r\n",    radio_.getRfOutputPower());
+            serial_->printf("nRF24L01+ Data Rate    : %d kbps\r\n",   radio_.getAirDataRate());
+            serial_->printf("nRF24L01+ TX Address   : 0x%010llX\r\n", radio_.getTxAddress());
+            if (isGateway_) {
+                auto pipe = NRF24L01P_PIPE_P0;
+                for (size_t i = 0; i < SETTINGS.size(); ++i)
+                    serial_->printf("nRF24L01+ RX%d Address  : 0x%010llX\r\n", i, radio_.getRxAddress(NRF24L01P_PIPE_P0 + i));
+            }
+            else {
+                serial_->printf("nRF24L01+ RX0 Address  : 0x%010llX\r\n", radio_.getRxAddress(NRF24L01P_PIPE_P0));
+            }
 
             radio_.enable();
         }
@@ -49,8 +66,10 @@ namespace iotea {
                 return false;
 
             // Data too long.
-            if (data.size() >= TRANSFER_SIZE)
+            if (data.size() >= TRANSFER_SIZE) {
+                serial_->printf("radio error: tried to send %d bytes of data\r\n", data.size());
                 return false;
+            }
 
             if (isGateway_)
                 radio_.setTxAddress(SETTINGS[name].address);

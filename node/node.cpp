@@ -7,15 +7,16 @@ namespace iotea {
 
         Node::Node(NodeName nodeName)
             : name_(nodeName)
-            , serial_(USBTX, USBRX)
-            , radio_(name_) {}
+            , serial_(std::make_shared<Serial>(USBTX, USBRX))
+            , radio_(name_, serial_) {}
 
         void Node::addSensor(std::unique_ptr<sensor::Sensor> sensor) {
             sensors_.push_back(std::move(sensor));
         }
 
         void Node::setupSerial() {
-            serial_.baud(115200); serial_.printf("node %d: serial configured\r\n", name_);
+            serial_->baud(115200);
+            serial_->printf("node %d: serial configured\r\n", name_);
         }
 
         void Node::setupRadio() {
@@ -23,7 +24,7 @@ namespace iotea {
         }
 
         void Node::handleMessage(const protocol::Message& message) {
-            serial_.printf("node %d: received message type %d, data %d\r\n", message.type, message.data);
+            serial_->printf("node %d: received message type %d, data %d\r\n", message.type, message.data);
             /*
             if (message.type == CONFIGURE_TIME)
                 configureTime(dynamic_cast<protocol::TimeMessage>(message));

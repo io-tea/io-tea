@@ -12,13 +12,13 @@ namespace iotea {
         const size_t Gateway::PENDING_FORWARD_MESSAGES_QUEUE_SIZE_LIMIT = 32;
 
         Gateway::Gateway()
-            : serial_(USBTX, USBRX)
-            , radio_(iotea::NodeName::GATEWAY_OOLONG)
+            : serial_(std::make_shared<Serial>(USBTX, USBRX))
+            , radio_(iotea::NodeName::GATEWAY_OOLONG, serial_)
             , lastPingMessage_(0) {}
 
         void Gateway::setupSerial() {
-            serial_.baud(115200);
-            serial_.printf("gateway: serial configured\r\n");
+            serial_->baud(115200);
+            serial_->printf("gateway: serial configured\r\n");
         }
 
         void Gateway::setupRadio() {
@@ -28,11 +28,11 @@ namespace iotea {
         void Gateway::sendNodeMessages(NodeName node) {
             for (auto it = pendingRadioMessages_[node].begin(); it != pendingRadioMessages_[node].end(); ++it) {
                 if (radio_.sendData(node, *it)) {
-                    serial_.printf("gateway: sent radio message to node %d\r\n", node);
+                    serial_->printf("gateway: sent radio message to node %d\r\n", node);
                     it = pendingRadioMessages_[node].erase(it);
                 }
                 else {
-                    serial_.printf("gateway: failed to send radio message to node %d\r\n", node);
+                    serial_->printf("gateway: failed to send radio message to node %d\r\n", node);
                     ++it;
                 }
             }

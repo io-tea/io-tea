@@ -30,7 +30,7 @@ namespace iotea {
 
             NodeName name_;
 
-            Serial serial_;
+            std::shared_ptr<Serial> serial_;
             radio::Radio radio_;
 
             std::list<std::unique_ptr<sensor::Sensor>> sensors_;

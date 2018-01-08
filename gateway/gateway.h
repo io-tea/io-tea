@@ -25,7 +25,7 @@ namespace iotea {
             static const size_t PENDING_RADIO_MESSAGES_QUEUE_SIZE_LIMIT;
             static const size_t PENDING_FORWARD_MESSAGES_QUEUE_SIZE_LIMIT;
 
-            Serial serial_;
+            std::shared_ptr<Serial> serial_;
             radio::Radio radio_;
 
             time_t lastPingMessage_;

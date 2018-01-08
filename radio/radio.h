@@ -4,11 +4,13 @@
 
 #include "nRF24L01P.h"
 
+#include <memory>
+
 namespace iotea {
     namespace radio {
         class Radio {
         public:
-            Radio(NodeName name);
+            Radio(NodeName name, std::shared_ptr<Serial> serial);
 
             /**
              * Setup configuration for this node.
@@ -42,6 +44,8 @@ namespace iotea {
             size_t currentPipeWithDataIndex_;
 
             nRF24L01P radio_;
+
+            std::shared_ptr<Serial> serial_;
         };
     }
 }
