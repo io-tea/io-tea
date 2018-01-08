@@ -59,14 +59,10 @@ namespace iotea {
 
                 while (radio_.isDataAvailible()) {
                     std::string data = radio_.receiveData();
-
-                    std::unique_ptr<protocol::Message> message;
-                    // TODO: use cantcoap, message = message::unpack(data);
-                    message = std::make_unique<protocol::Message>(
-                            static_cast<protocol::MessageType>(data[0]), data[1]);
-                    handleMessage(*message);
+                    protocol::Message message(data);
+                    handleMessage(message);
                     for (auto& sensor: sensors_)
-                        sensor->handleMessage(*message);
+                        sensor->handleMessage(message);
                 }
 
                 // Add node's messages (configuration ones, asking for data, etc)
@@ -78,8 +74,7 @@ namespace iotea {
                 // Add sensors' messages (data from world, etc)
                 for (auto& sensor: sensors_) {
                     for (auto& message: sensor->getMessages()) {
-                        auto bytes = message->get_bytes();
-                        pendingRadioMessages_.emplace_back(std::string(bytes.begin(), bytes.end()));
+                        pendingRadioMessages_.emplace_back(message->asPUTCoapPacket());
                     }
                 }
 

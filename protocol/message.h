@@ -23,7 +23,10 @@ namespace iotea {
         struct Message {
             Message(MessageType type, uint8_t data);
             Message(bytes_t bytes);
-            bytes_t get_bytes();
+            Message(const std::string& coapPacket);
+
+            bytes_t get_bytes() const;
+            std::string asPUTCoapPacket() const;
 
             MessageType type;
             uint8_t data;

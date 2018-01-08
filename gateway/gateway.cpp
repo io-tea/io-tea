@@ -8,7 +8,7 @@ namespace iotea {
         const std::vector<NodeName> Gateway::NODES = {
             NodeName::NODE_EARLGREY, NodeName::NODE_PUERH, NodeName::NODE_YERBA};
 
-        const size_t Gateway::PENDING_RADIO_MESSAGES_QUEUE_SIZE_LIMIT = 32;
+        const size_t Gateway::PENDING_RADIO_MESSAGES_QUEUE_SIZE_LIMIT = 16;
         const size_t Gateway::PENDING_FORWARD_MESSAGES_QUEUE_SIZE_LIMIT = 32;
 
         Gateway::Gateway()
