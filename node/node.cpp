@@ -95,7 +95,7 @@ namespace iotea {
                 }
                 */
 
-                wait(0.001);
+                wait(0.02);
             }
         }
     }

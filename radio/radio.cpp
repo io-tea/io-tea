@@ -28,6 +28,8 @@ namespace iotea {
                     radio_.enableAutoAcknowledge(pipe);
                     radio_.setRxAddress(node.second.address, 5, pipe);
                     radio_.setTransferSize(TRANSFER_SIZE, pipe);
+
+                    ++pipe;
                 }
             }
             else {
@@ -42,7 +44,6 @@ namespace iotea {
             serial_->printf("nRF24L01+ Data Rate    : %d kbps\r\n",   radio_.getAirDataRate());
             serial_->printf("nRF24L01+ TX Address   : 0x%010llX\r\n", radio_.getTxAddress());
             if (isGateway_) {
-                auto pipe = NRF24L01P_PIPE_P0;
                 for (size_t i = 0; i < SETTINGS.size(); ++i)
                     serial_->printf("nRF24L01+ RX%d Address  : 0x%010llX\r\n", i, radio_.getRxAddress(NRF24L01P_PIPE_P0 + i));
             }
@@ -82,6 +83,10 @@ namespace iotea {
                 sent = bytesSent == TRANSFER_SIZE;
                 wait((rand() % 1000) / 1e6);
             } while (!sent && retriesCount-- > 0);
+
+            serial_->printf("radio debug: write: %d bytes, last byte: %d, result %d\r\n",
+                    TRANSFER_SIZE, (uint8_t)data[data.size() - 1], sent);
+
             return sent;
         }
 
@@ -103,6 +108,10 @@ namespace iotea {
         std::string Radio::receiveData() {
             std::string data(TRANSFER_SIZE, '\0');
             int bytesRead = radio_.read(NRF24L01P_PIPE_P0 + currentPipeWithDataIndex_, &data[0], TRANSFER_SIZE);
+
+            serial_->printf("radio debug: read: %d bytes, last byte: %d, result %d\r\n",
+                    bytesRead, (uint8_t)data[data.size() - 1], bytesRead == TRANSFER_SIZE);
+
             if (bytesRead < 0)
                 return "";
             data.resize(bytesRead);
