@@ -21,7 +21,6 @@ namespace iotea {
             radio_.setRfOutputPower(POWER);
             radio_.setRfFrequency(NRF24L01P_MIN_RF_FREQUENCY + 4 * CHANNEL);
             radio_.setCrcWidth(NRF24L01P_CRC_8_BIT);
-            radio_.enableAutoRetransmit(0x01, 0x01);
 
             if (isGateway_) {
                 auto pipe = NRF24L01P_PIPE_P0;
@@ -30,10 +29,8 @@ namespace iotea {
                     radio_.setRxAddress(node.second.address, 5, pipe);
                     radio_.setTransferSize(TRANSFER_SIZE, pipe);
                 }
-                radio_.setReceiveMode();
             }
             else {
-                radio_.enableAutoAcknowledge(NRF24L01P_PIPE_P0);
                 radio_.setRxAddress(SETTINGS[name_].address, 4, NRF24L01P_PIPE_P0);
                 radio_.setTxAddress(SETTINGS[name_].address, 4);
                 radio_.setTransferSize(TRANSFER_SIZE, NRF24L01P_PIPE_P0);
@@ -53,6 +50,7 @@ namespace iotea {
                 serial_->printf("nRF24L01+ RX0 Address  : 0x%010llX\r\n", radio_.getRxAddress(NRF24L01P_PIPE_P0));
             }
 
+            radio._setReceiveMode();
             radio_.enable();
         }
 
