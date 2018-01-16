@@ -18,5 +18,6 @@ void setupTicker();
 
 // Only for nodes
 void sendCoapMessage(const std::string& uri, const std::string& data);
+void printStatus();
 
 #endif // ifndef IOTEA_NODE_H_

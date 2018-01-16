@@ -68,6 +68,10 @@ void setupGatewayRadio() {
     radio.enable();
 }
 
+namespace {
+    uint32_t sent = 0;
+}
+
 void sendCoapMessage(const std::string& uri, const std::string& data) {
     static uint64_t nextMessageID = 0;
 
@@ -80,7 +84,9 @@ void sendCoapMessage(const std::string& uri, const std::string& data) {
     // Sam protokół zjada nam ~5 bajtów, zostaje więc ~25 na uri i dane
     // (bo ramki radiowe mogą mieć maksymalnie ~32 bajty).
     coapPDU.setURI(const_cast<char*>(uri.c_str()), uri.size());
-    coapPDU.setPayload((uint8_t*)&data[0], data.size());
+
+    std::string payload = data + "," + std::to_string(nextMessageID % 1000);
+    coapPDU.setPayload((uint8_t*)&payload[0], payload.size());
 
     std::string msg(coapPDU.getPDUPointer(), coapPDU.getPDUPointer() + coapPDU.getPDULength());
     msg.resize(32, '\0');
@@ -89,4 +95,10 @@ void sendCoapMessage(const std::string& uri, const std::string& data) {
         radio.write(/* unused */ 0, &msg[0], 32);
         wait((rand() % 10 + 1) * 1e-3);
     }
+    ++sent;
+}
+
+void printStatus() {
+    pc.printf("====\r\n");
+    pc.printf("sent: %d (%d)\r\n", sent * 4, sent);
 }
