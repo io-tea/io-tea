@@ -91,6 +91,8 @@ void sendCoapMessage(const std::string& uri, const std::string& data) {
     std::string msg(coapPDU.getPDUPointer(), coapPDU.getPDUPointer() + coapPDU.getPDULength());
     msg.resize(32, '\0');
 
+    pc.printf("sending coap message to %s: %s\r\n", uri.c_str(), data.c_str());
+
     for (int tries = 0; tries < 4; ++tries) {
         radio.write(/* unused */ 0, &msg[0], 32);
         wait((rand() % 10 + 1) * 1e-3);
