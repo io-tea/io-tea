@@ -181,6 +181,9 @@ public:
     void setTxAddress(unsigned long long address = DEFAULT_NRF24L01P_ADDRESS, int width = DEFAULT_NRF24L01P_ADDRESS_WIDTH);
 
     void setTxAddress(unsigned long msb_address, unsigned long lsb_address, int width);
+    
+    void disablePipeRX(int pipe);
+    void enablePipeRX(int pipe);
 
     /**
      * Get the Receive address.
@@ -219,6 +222,13 @@ public:
      * @return true if the received power exceeded -64dBm
      */
     bool getRPD(void);
+    
+    /**
+     * Get the ARC_CNT register value
+     *
+     * @return number of retransmissions
+     */
+    int getRetrCount(void);
 
     /**
      * Put the nRF24L01+ into Receive mode
@@ -309,7 +319,13 @@ public:
      * @param count number of retransmits before generating an error (1..15)
      */
     void enableAutoRetransmit(int delay, int count);
-
+    
+    void enableDynamicPayload(int pipe);
+    void disableDynamicPayload(void);
+    
+    void flushRx(void);
+    void flushTx(void);
+    uint8_t getRSSI(void);
 private:
 
     /**
@@ -341,6 +357,7 @@ private:
     InterruptIn nIRQ_;
 
     int mode;
+    bool a_retr_enabled;
 
 };
 

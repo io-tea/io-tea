@@ -190,8 +190,22 @@ nRF24L01P::nRF24L01P(PinName mosi,
     wait_us(_NRF24L01P_TIMING_Tundef2pd_us);    // Wait for Power-on reset
 
     setRegister(_NRF24L01P_REG_CONFIG, 0); // Power Down
+    
+    // Wait until the nRF24L01+ powers down
+    wait_us( _NRF24L01P_TIMING_Tpd2stby_us );    // This *may* not be necessary (no timing is shown in the Datasheet), but just to be safe
 
     setRegister(_NRF24L01P_REG_STATUS, _NRF24L01P_STATUS_MAX_RT|_NRF24L01P_STATUS_TX_DS|_NRF24L01P_STATUS_RX_DR);   // Clear any pending interrupts
+    
+    //flush FIFO
+    nCS_ = 0;
+    spi_.write(_NRF24L01P_SPI_CMD_FLUSH_TX);
+    nCS_ = 1;
+    wait_us( _NRF24L01P_TIMING_Tpece2csn_us );
+    nCS_ = 0;
+    spi_.write(_NRF24L01P_SPI_CMD_FLUSH_RX);
+    nCS_ = 1;
+    wait_us( _NRF24L01P_TIMING_Tpece2csn_us );
+
 
     //
     // Setup default configuration
@@ -206,6 +220,8 @@ nRF24L01P::nRF24L01P(PinName mosi,
     disableAutoAcknowledge();
     disableAutoRetransmit();
     setTransferSize();
+    
+    a_retr_enabled = true;
 
     mode = _NRF24L01P_MODE_POWER_DOWN;
 
@@ -548,11 +564,52 @@ void nRF24L01P::enableAutoAcknowledge(int pipe) {
 
 }
 
+void nRF24L01P::enableDynamicPayload(int pipe) {
+
+    if ( ( pipe < NRF24L01P_PIPE_P0 ) || ( pipe > NRF24L01P_PIPE_P5 ) ) {
+
+        error( "nRF24L01P: Invalid Enable AutoAcknowledge pipe number %d\r\n", pipe );
+        return;
+
+    }
+    
+    int feature = getRegister(_NRF24L01P_REG_FEATURE);
+    feature |= ( 1 << 2 );
+    setRegister(_NRF24L01P_REG_FEATURE, feature);
+
+    int dynpd = getRegister(_NRF24L01P_REG_DYNPD);
+    dynpd |= ( 1 << (pipe - NRF24L01P_PIPE_P0) );
+    setRegister(_NRF24L01P_REG_DYNPD, dynpd);
+
+}
+
+
+void nRF24L01P::disableDynamicPayload(void) {
+    
+    int feature = getRegister(_NRF24L01P_REG_FEATURE);
+    feature &= !( 1 << 2 );
+    setRegister(_NRF24L01P_REG_FEATURE, feature);
+}
+
 
 void nRF24L01P::disableAutoRetransmit(void) {
 
     setRegister(_NRF24L01P_REG_SETUP_RETR, _NRF24L01P_SETUP_RETR_NONE);
+    a_retr_enabled = false;
 
+}
+
+void nRF24L01P::enableAutoRetransmit(int delay, int count) {
+	delay = (0x00F0 & (delay << 4));
+	count = (0x000F & count);
+
+	setRegister(_NRF24L01P_REG_SETUP_RETR, delay|count);
+	a_retr_enabled = true;
+
+}
+
+int nRF24L01P::getRetrCount(){
+	return getRegister(_NRF24L01P_REG_OBSERVE_TX) & 0x0F;
 }
 
 void nRF24L01P::setRxAddress(unsigned long long address, int width, int pipe) {
@@ -621,6 +678,36 @@ void nRF24L01P::setRxAddress(unsigned long long address, int width, int pipe) {
     enRxAddr |= (1 << ( pipe - NRF24L01P_PIPE_P0 ) );
 
     setRegister(_NRF24L01P_REG_EN_RXADDR, enRxAddr);
+}
+
+void nRF24L01P::disablePipeRX(int pipe) {
+	
+	if ( ( pipe < NRF24L01P_PIPE_P0 ) || ( pipe > NRF24L01P_PIPE_P5 ) ) {
+	    error( "nRF24L01P: Invalid setRxAddress pipe number %d\r\n", pipe );
+	    return;
+	}
+	
+	int enRxAddr = getRegister(_NRF24L01P_REG_EN_RXADDR);
+
+    enRxAddr &= ~(1 << ( pipe - NRF24L01P_PIPE_P0 ) );
+
+    setRegister(_NRF24L01P_REG_EN_RXADDR, enRxAddr);
+	
+}
+
+void nRF24L01P::enablePipeRX(int pipe) {
+	
+	if ( ( pipe < NRF24L01P_PIPE_P0 ) || ( pipe > NRF24L01P_PIPE_P5 ) ) {
+        error( "nRF24L01P: Invalid setRxAddress pipe number %d\r\n", pipe );
+        return;
+    }
+	
+	int enRxAddr = getRegister(_NRF24L01P_REG_EN_RXADDR);
+
+    enRxAddr |= (1 << ( pipe - NRF24L01P_PIPE_P0 ) );
+
+    setRegister(_NRF24L01P_REG_EN_RXADDR, enRxAddr);
+	
 }
 
 /*
@@ -835,7 +922,7 @@ bool nRF24L01P::readable(int pipe) {
 
 
 int nRF24L01P::write(int pipe, char *data, int count) {
-
+	
     // Note: the pipe number is ignored in a Transmit / write
 
     //
@@ -850,6 +937,7 @@ int nRF24L01P::write(int pipe, char *data, int count) {
 
     // Clear the Status bit
     setRegister(_NRF24L01P_REG_STATUS, _NRF24L01P_STATUS_TX_DS);
+    setRegister(_NRF24L01P_REG_STATUS, _NRF24L01P_STATUS_MAX_RT);
 	
     nCS_ = 0;
 
@@ -870,14 +958,20 @@ int nRF24L01P::write(int pipe, char *data, int count) {
     wait_us(_NRF24L01P_TIMING_Thce_us);
     disable();
 
-    while ( !( getStatusRegister() & _NRF24L01P_STATUS_TX_DS ) ) {
-
-        // Wait for the transfer to complete
-
+    while ( !( getStatusRegister() & (_NRF24L01P_STATUS_TX_DS | _NRF24L01P_STATUS_MAX_RT) ) ) {
+    }
+    
+    int s = getStatusRegister();
+    
+	if (s & _NRF24L01P_STATUS_MAX_RT){
+    	//max retransmissions
+    	flushTx();
+    	count = -1;
     }
 
     // Clear the Status bit
     setRegister(_NRF24L01P_REG_STATUS, _NRF24L01P_STATUS_TX_DS);
+    setRegister(_NRF24L01P_REG_STATUS, _NRF24L01P_STATUS_MAX_RT);
 
     if ( originalMode == _NRF24L01P_MODE_RX ) {
 
@@ -912,7 +1006,7 @@ int nRF24L01P::read(int pipe, char *data, int count) {
 
         int status = spi_.write(_NRF24L01P_SPI_CMD_R_RX_PL_WID);
 
-        int rxPayloadWidth = spi_.write(_NRF24L01P_SPI_CMD_NOP);
+        int rxPayloadWidth = spi_.write(_NRF24L01P_SPI_CMD_NOP) & 0xFF;
         
         nCS_ = 1;
 
@@ -975,6 +1069,36 @@ int nRF24L01P::read(int pipe, char *data, int count) {
     return -1;
 
 }
+
+bool nRF24L01P::getRPD(){
+    uint8_t rpd = getRegister(_NRF24L01P_REG_RPD);
+    return (rpd>0);
+}
+ 
+uint8_t nRF24L01P::getRSSI(){
+    uint8_t rssi =0;
+    for(int i=0; i<256; i++){
+        rssi += getRPD();
+        wait_us(50);
+        flushRx();
+    }
+    return rssi;
+}
+
+void nRF24L01P::flushRx(void)
+{
+    nCS_ = 0;
+    spi_.write(_NRF24L01P_SPI_CMD_FLUSH_RX);
+    nCS_ = 1;
+}
+ 
+void nRF24L01P::flushTx(void)
+{
+    nCS_ = 0;
+    spi_.write(_NRF24L01P_SPI_CMD_FLUSH_TX);
+    nCS_ = 1;
+}
+
 
 void nRF24L01P::setRegister(int regAddress, int regData) {
 
