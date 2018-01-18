@@ -12,7 +12,7 @@ void setupSerial(const std::string& label) {
 }
 
 void setupTicker() {
-    readTicker.attach([&]() { tick = true; }, 0.1);
+    readTicker.attach([&]() { tick = true; }, 0.2);
 }
 
 void setupNodeRadio(uint64_t address) {
